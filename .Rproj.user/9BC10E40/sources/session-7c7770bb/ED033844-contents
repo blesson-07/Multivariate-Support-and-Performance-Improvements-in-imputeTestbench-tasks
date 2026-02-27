@@ -1,0 +1,5 @@
+library(imputeTestbench)
+data(AirPassengers)
+errors <- impute_errors(AirPassengers)
+plot_errors(errors)  # ← CORRECT FUNCTION NAME
+install.packages("rmarkdown")
