@@ -1,6 +1,6 @@
 ---
 title: "Demonstration of imputeTestbench on AirPassengers Data"
-author: "Your Name"
+author: "blesson"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -16,7 +16,6 @@ This report demonstrates the use of the `imputeTestbench` package to evaluate im
 
 ## Loading the package and data
 
-First, we need to install the package (if not already installed) and load it. Then we load the `AirPassengers` dataset, which is available in base R.
 
 ```{r load-packages}
 # Install package if needed (uncomment if running for the first time)
@@ -28,7 +27,7 @@ data("AirPassengers")
 
 ## Imputation error assessment
 
-The function `impute_errors()` from the `imputeTestbench` package automatically introduces missing values (by default, 10% of the data) and compares several imputation methods (linear interpolation, spline, etc.) based on error metrics (RMSE, MAE, MAPE). The result is an object that can be passed to `plot_errors()` to visualize the comparison.
+The function `impute_errors()` from the `imputeTestbench` package automatically introduces missing values (by default, 10% of the data) and compares several imputation methods based on error metrics (RMSE..). The result is an object that can be passed to `plot_errors()` to visualize the comparison.
 
 ```{r impute-errors}
 # Run the imputation error benchmark
