@@ -1,48 +1,180 @@
 ---
-title: "Demonstration of imputeTestbench on AirPassengers Data"
+title: "Imputation Benchmarking on Nottingham Temperature Data"
 author: "blesson"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
 ---
 
-
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+set.seed(42)
 ```
 
-## Introduction
+## 1. Introduction
 
-This report demonstrates the use of the `imputeTestbench` package to evaluate imputation methods on a naturally occurring time series. The dataset used is the classic `AirPassengers` time series, which contains monthly totals of international airline passengers from 1949 to 1960.
+This report demonstrates the `imputeTestbench` package on the `nottem`
+dataset — monthly mean air temperatures (in Fahrenheit) recorded at
+Nottingham Castle, England, from 1920 to 1939. It contains 240 monthly
+observations with no missing values, making it a clean baseline for
+controlled imputation benchmarking.
 
-## Loading the package and data
+Temperature series like this are common in environmental and climate
+research, where sensor failures and data transmission errors routinely
+cause missing readings. Understanding which imputation method best
+recovers the original values is practically important.
 
-
-```{r load-packages}
-# Install package if needed (uncomment if running for the first time)
-# install.packages("imputeTestbench")
-
+```{r load}
 library(imputeTestbench)
-data("AirPassengers")
+
+temp_data <- as.numeric(nottem)
+
+cat("Observations:", length(temp_data), "\n")
+cat("Period      : 1920 to 1939 (monthly)\n")
+cat("Range       :", round(min(temp_data), 1), "to",
+    round(max(temp_data), 1), "F\n")
+cat("Mean        :", round(mean(temp_data), 1), "F\n")
 ```
 
-## Imputation error assessment
+---
 
-The function `impute_errors()` from the `imputeTestbench` package automatically introduces missing values (by default, 10% of the data) and compares several imputation methods based on error metrics (RMSE..). The result is an object that can be passed to `plot_errors()` to visualize the comparison.
+## 2. Exploring the data
 
-```{r impute-errors}
-# Run the imputation error benchmark
-errors <- impute_errors(AirPassengers)
-
-# Plot the results
-plot_errors(errors)
+```{r eda, fig.width=10, fig.height=4}
+plot(nottem,
+     main = "Nottingham Castle: monthly mean temperature (1920-1939)",
+     ylab = "Temperature (F)",
+     xlab = "Year",
+     col  = "steelblue",
+     lwd  = 1.5)
+abline(h   = mean(temp_data),
+       col = "tomato",
+       lty = 2,
+       lwd = 1.2)
+legend("topright",
+       legend = paste0("Series mean (", round(mean(temp_data), 1), " F)"),
+       col = "tomato", lty = 2, bty = "n")
 ```
 
-## Interpretation
+The series shows a clear and consistent seasonal cycle — cold winters
+around 35F, warm summers around 65F — repeating every 12 months across
+20 years. This regularity is exactly what separates good imputation
+methods from poor ones: a method that understands seasonality will
+recover missing winter values as cold, not as the annual mean of ~49F.
 
-The plot shows the error metrics for each imputation method at different missing data percentages . Lower error values indicate better imputation performance. From this plot, we can see which method performs best for the `AirPassengers` series. For example, if one method consistently has lower RMSE across all missingness levels, it would be the preferred choice.
-From the plot, the na.interp method (shown in yellow) consistently has the lowest RMSE across all missing data percentages, making it the best performer for this dataset.
+---
 
-## Conclusion
+## 3. Running the benchmark
 
-The `imputeTestbench` package provides a convenient way to compare imputation techniques on real time series data. This quick demonstration on the `AirPassengers` data shows how to run the benchmark and visualize the results.
+We test four methods that represent increasing levels of sophistication:
 
+- `na.mean` — replaces every missing value with the series mean
+- `na.locf` — carries the last observed value forward
+- `na.approx` — linear interpolation between surrounding values
+- `na.interp` — seasonal decomposition-aware interpolation
+
+```{r benchmark}
+methods_to_test <- c("na.mean", "na.locf", "na.approx", "na.interp")
+
+results <- impute_errors(
+  dataIn          = temp_data,
+  smps            = "mcar",
+  methods         = methods_to_test,
+  missPercentFrom = 10,
+  missPercentTo   = 50,
+  interval        = 10
+)
+
+print(results)
+```
+
+---
+
+## 4. Visualising the results
+
+```{r plot-results, fig.width=9, fig.height=5}
+plot_errors(results, plotType = "line")
+```
+
+`na.mean` is consistently the worst performer. This makes intuitive sense:
+the series mean is ~49F, but the actual values span 35F to 65F in a
+predictable seasonal pattern. Filling a missing July reading with 49F
+introduces a large error when the true value is closer to 63F.
+
+`na.interp` performs best across all missingness levels because it
+decomposes the series into trend and seasonal components before
+interpolating, allowing it to "know" that a missing summer month
+should be warm.
+
+---
+
+## 5. Seeing the imputation at 40% missingness
+
+```{r impute-plot, fig.width=10, fig.height=7}
+plot_impute(dataIn = temp_data, missPercent = 40)
+```
+
+At 40% missingness the differences become visually obvious. The flat
+pink line from `na.mean` completely ignores the seasonal cycle.
+`na.interp` produces imputed points that follow the seasonal wave
+closely, making them nearly indistinguishable from the real observations.
+
+---
+
+## 6. How much better is the best method?
+
+```{r quantify}
+rmse_at_30 <- data.frame(
+  method = methods_to_test,
+  rmse   = round(c(results$na.mean[3],
+                   results$na.locf[3],
+                   results$na.approx[3],
+                   results$na.interp[3]), 3)
+)
+rmse_at_30 <- rmse_at_30[order(rmse_at_30$rmse), ]
+rmse_at_30$times_worse <- round(rmse_at_30$rmse / min(rmse_at_30$rmse), 2)
+print(rmse_at_30)
+```
+
+```{r bar, fig.width=7, fig.height=5}
+colors <- c("na.interp" = "steelblue", "na.approx" = "steelblue4",
+            "na.locf"   = "orange",    "na.mean"   = "tomato")
+
+bp <- barplot(rmse_at_30$rmse,
+              names.arg = rmse_at_30$method,
+              col       = colors[rmse_at_30$method],
+              main      = "RMSE at 30% missingness — lower is better",
+              ylab      = "RMSE",
+              ylim      = c(0, max(rmse_at_30$rmse) * 1.15),
+              las       = 2)
+text(bp, rmse_at_30$rmse + 0.15,
+     labels = rmse_at_30$rmse, cex = 0.85)
+```
+
+At 30% missingness, `na.mean` produces an error roughly
+`r rmse_at_30$times_worse[rmse_at_30$method == "na.mean"]`x larger
+than `na.interp`. The difference grows as missingness increases.
+
+---
+
+## 7. Conclusion
+
+For a strongly seasonal series like Nottingham temperatures,
+`na.interp` is clearly the best choice. The key takeaway is that
+**method selection should match the structure of the series**: a method
+that can represent seasonality will always outperform one that ignores
+it, and the gap widens as the proportion of missing data grows.
+
+`imputeTestbench` makes this comparison reproducible and systematic —
+running a rigorous multi-method benchmark takes just a few lines of code.
+
+---
+
+## 8. Session info
+
+```{r session}
+sessionInfo()
+```
