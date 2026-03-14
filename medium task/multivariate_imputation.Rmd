@@ -1,0 +1,286 @@
+---
+title: "Structured Missing Data Simulation for Multivariate Time Series"
+subtitle: "Extending imputeTestbench for Multivariate Support"
+author: ""
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    theme: flatly
+    highlight: tango
+    number_sections: true
+  pdf_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  eval = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "#>"
+)
+```
+
+---
+
+# Why Multivariate?
+
+`imputeTestbench` currently excels at benchmarking imputation methods on **univariate** time series. But real data is rarely univariate. Weather stations record temperature, humidity, and pressure simultaneously; financial datasets include multiple correlated indicators.
+
+To evaluate imputation algorithms realistically, we need to:
+
+- Simulate missingness that can affect several variables at once (e.g., a sensor array failure)
+- Test methods that use cross-variable relationships (e.g., MICE, VAR imputation, `mtsdi`)
+- Assess performance **per variable** — which sensors are hardest to impute?
+
+Adding multivariate support will make `imputeTestbench` useful for a much wider range of applications.
+
+---
+
+# Current Univariate Architecture
+
+The existing pipeline for a single time series (vector or `ts`) is:
+
+1. **`sample_dat()`** — takes a complete series and returns a list of *repetition* corrupted copies, each with exactly a given percentage `b` of `NA`s (MCAR or block MAR).
+
+2. **`impute_errors()`** — loops over:
+   - Missing percentages (e.g., 10%, 20%, …)
+   - Imputation methods (e.g., `na.approx`, `na.interp`)
+   - Repetitions (each corrupted copy from `sample_dat`)
+   
+   For each repetition:
+   - Apply the method to fill `NA`s → `filled`
+   - Compute an error metric (RMSE, MAE, …) between original and `filled`
+   - Store the single error value
+
+**Storage:** Raw errors are kept in `errall[[method]][[percentage_index]]` as a vector of length `repetition`.
+
+**Final output:** An `errprof` object — a list with `Parameter`, `MissingPercent`, and for each method a vector of average errors.
+
+Everything is designed for vectors. To support matrices (rows = time, columns = variables), we must extend it without breaking existing code.
+
+---
+
+# Proposed Multivariate Extensions
+
+We will **extend** the existing functions — not create separate `*_mv` versions. This keeps the API clean and uses all current features (custom methods, extra arguments, user-defined error functions).
+
+## Input Detection
+
+At the top of both `sample_dat` and `impute_errors`:
+
+```{r input-detection}
+if (is.matrix(dataIn) || is.data.frame(dataIn)) {
+  multivariate <- TRUE
+  dataIn <- as.matrix(dataIn)
+  n_vars <- ncol(dataIn)
+  if (n_vars == 1) multivariate <- FALSE   # treat single column as univariate
+} else {
+  multivariate <- FALSE
+}
+```
+
+All subsequent logic branches on `multivariate`.
+
+## Missing Data Generation — Extending `sample_dat()`
+
+For multivariate input, `sample_dat` will return a list of corrupted **matrices** (one per repetition). New arguments control the missingness mechanisms:
+
+| Argument | Description |
+|---|---|
+| `mv_mechanism` | One of `"mcar"`, `"mar"`, `"block"`, `"system_blackout"`. Default `"mcar"`. |
+| `mv_mar_func` | A function that takes the full data matrix and returns a probability matrix of the same dimensions (for flexible MAR). |
+| `mv_block_size` | Block length (can be a scalar or a vector of length `n_vars`). |
+| `mv_n_blocks` | Number of blocks per variable (for independent block missingness). |
+| `mv_synchronize` | Logical; if `TRUE`, blocks occur at the same rows for all variables (simulates a system-wide outage). |
+| `mv_protect_ends` | Logical (default `TRUE`) to keep first and last time points observed, matching the univariate behaviour. |
+
+### How It Works Internally
+
+For each repetition, we generate a logical **mask** — a matrix of the same dimensions as the data, with `TRUE` where we want `NA`. Then we apply it:
+
+```{r mask-apply}
+corrupted <- data
+corrupted[mask] <- NA
+```
+
+The mask is created by helper functions specific to each mechanism:
+
+```{r mask-mechanisms}
+# MCAR: each cell independently missing with probability b/100
+mask <- matrix(runif(n * n_vars) < b / 100, nrow = n, ncol = n_vars)
+
+# System blackout: all variables missing for same contiguous block
+mask <- matrix(FALSE, n, n_vars)
+start <- sample(2:(n - block_size), 1)   # protect ends
+mask[start:(start + block_size - 1), ] <- TRUE
+
+# Independent blocks: each variable gets its own blocks
+mask <- matrix(FALSE, n, n_vars)
+for (j in 1:n_vars) {
+  for (k in 1:n_blocks[j]) {
+    start <- sample(1:(n - block_size[j]), 1)
+    mask[start:(start + block_size[j] - 1), j] <- TRUE
+  }
+}
+
+# MAR: user function provides probabilities
+prob_matrix <- mv_mar_func(data)        # user-defined
+mask <- matrix(runif(n * n_vars) < prob_matrix, nrow = n, ncol = n_vars)
+```
+
+### Extended `sample_dat()` Skeleton
+
+```{r sample-dat-skeleton}
+sample_dat <- function(datin, ..., mv_mechanism = "mcar",
+                       mv_mar_func = NULL,
+                       mv_block_size = 10,
+                       mv_n_blocks = 1,
+                       mv_synchronize = FALSE,
+                       mv_protect_ends = TRUE) {
+
+  if (!multivariate) {
+    # existing univariate code ...
+
+  } else {
+    out <- vector("list", repetition)
+
+    for (i in 1:repetition) {
+      mask <- switch(mv_mechanism,
+        mcar = matrix(runif(n * n_vars) < b / 100, n, n_vars),
+        block = generate_block_mask(
+          n, n_vars, mv_block_size, mv_n_blocks,
+          mv_synchronize, mv_protect_ends
+        ),
+        system_blackout = generate_system_blackout_mask(
+          n, n_vars, mv_block_size, mv_protect_ends
+        ),
+        mar = generate_mar_mask(datin, mv_mar_func, ...)
+      )
+
+      corrupted <- datin
+      corrupted[mask] <- NA
+      out[[i]] <- corrupted
+    }
+
+    return(out)
+  }
+}
+```
+
+The helper functions (`generate_block_mask`, etc.) are implemented in separate internal files with unit tests.
+
+## Integration with `impute_errors()`
+
+The three nested loops remain unchanged. The critical modifications are inside the innermost repetition loop and in the error storage.
+
+### Per-Variable Error Computation
+
+```{r per-variable-error}
+errs <- lapply(out, function(y) {   # y is a corrupted matrix
+  filled <- eval(parse(text = toeval))  # imputed matrix (same dimensions)
+
+  if (multivariate) {
+    # Compute error per variable using existing vector error functions
+    err_vec <- numeric(n_vars)
+    for (j in 1:n_vars) {
+      err_vec[j] <- eval(
+        parse(text = paste0(errorParameter, "(dataIn[,j], filled[,j])"))
+      )
+    }
+    return(err_vec)   # vector of length n_vars
+
+  } else {
+    # univariate: single error value
+    return(eval(parse(text = paste0(errorParameter, "(dataIn, filled)"))))
+  }
+})
+```
+
+### Matrix Storage
+
+After processing all repetitions for a given method and percentage, we combine the list of error vectors into a matrix:
+
+```{r matrix-storage}
+err_matrix <- do.call(rbind, errs)   # dimensions: repetition x n_vars
+errall[[method]][[x]] <- err_matrix
+```
+
+Each cell of `errall` now stores a **matrix** instead of a vector.
+
+## Final Output Structure
+
+The final summary (the returned `errprof` object) is built by averaging over repetitions per variable:
+
+```{r final-output}
+out <- lapply(errall, function(method_list) {
+  avg_per_perc <- lapply(method_list, colMeans)   # list of vectors
+  do.call(rbind, avg_per_perc)                    # matrix: percentages x variables
+})
+
+names(out) <- methods
+out <- c(list(Parameter = errorParameter, MissingPercent = percs), out)
+class(out) <- c("errprof", "list")
+attr(out, "errall") <- errall
+```
+
+For each method, the user now gets a **matrix** where:
+
+- **Rows** = missing percentages
+- **Columns** = variables
+
+This immediately shows how a method performs on each variable separately.
+
+## Backward Compatibility
+
+- All changes are conditional on input type. If `dataIn` is a vector or `ts`, `multivariate = FALSE` and the original univariate code path is used.
+- New `mv_*` arguments are simply ignored for univariate input, so existing scripts continue to work unchanged.
+- Existing unit tests for univariate data must pass without modification.
+
+---
+
+# Performance Optimisation
+
+Multivariate benchmarking can be computationally heavy. We will add an optional `parallel` argument to `impute_errors()` (default `FALSE`). When `TRUE`, we use the `future` and `future.apply` packages to parallelise the outer loop over percentages. This is safe because percentages are independent.
+
+
+
+---
+
+
+---
+
+# Why This Design Is Better
+
+| Feature | Benefit |
+|---|---|
+| **Seamless integration** | Users don't need to learn new functions |
+| **Handles repetitions correctly** | Returns a list of corrupted matrices, matching the univariate contract |
+| **Per-variable error storage** | Matrices inside `errall` are a natural extension of vectors |
+| **Realistic missingness** | Multiple blocks, system blackouts, flexible MAR |
+| **Performance built-in** | Optional parallelisation directly in the loop |
+| **Backward compatible** | Existing univariate code unchanged |
+
+---
+
+# Future Extensions: True Multivariate Imputation Methods
+
+The current proposal focuses on the infrastructure for multivariate missing data **simulation and evaluation**. The imputation methods themselves (e.g., `na.approx`, `na.interp`) are still applied column-wise and do not exploit correlations between variables.
+
+However, the framework we build will be ready to accommodate truly multivariate methods that use cross-variable relationships, such as:
+
+- **`mtsdi`** — EM-based imputation for multivariate time series
+- **`mice`** with time series adaptations
+- **`Amelia`** — bootstrapping + EM for time-series cross-sectional data
+- **`missMDA`** — PCA-based imputation
+- **VAR models** — vector autoregressive imputation
+
+---
+
+
