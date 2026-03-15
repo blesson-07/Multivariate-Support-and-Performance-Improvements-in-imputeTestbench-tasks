@@ -99,10 +99,7 @@ print(results)
 plot_errors(results, plotType = "line")
 ```
 
-`na.mean` is consistently the worst performer. This makes intuitive sense:
-the series mean is ~49F, but the actual values span 35F to 65F in a
-predictable seasonal pattern. Filling a missing July reading with 49F
-introduces a large error when the true value is closer to 63F.
+`na.mean` is consistently the worst performer. 
 
 `na.interp` performs best across all missingness levels because it
 decomposes the series into trend and seasonal components before
@@ -111,13 +108,13 @@ should be warm.
 
 ---
 
-## 5. Seeing the imputation at 40% missingness
+## 5. Seeing the imputation at 50% missingness
 
 ```{r impute-plot, fig.width=10, fig.height=7}
-plot_impute(dataIn = temp_data, missPercent = 40)
+plot_impute(dataIn = temp_data, missPercent = 50)
 ```
 
-At 40% missingness the differences become visually obvious. The flat
+At 50% missingness the differences become visually obvious. The flat
 pink line from `na.mean` completely ignores the seasonal cycle.
 `na.interp` produces imputed points that follow the seasonal wave
 closely, making them nearly indistinguishable from the real observations.
