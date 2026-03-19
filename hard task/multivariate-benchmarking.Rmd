@@ -1,0 +1,91 @@
+---
+title: "multivariate-benchmarking"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{multivariate-benchmarking}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(imputeTestbench)
+```
+
+## Introduction
+
+The `imputeTestbench` package provides tools to compare imputation methods for time series data. 
+Originally, the `impute_errors()` function works on a single time series. 
+This vignette introduces `mv_impute_errors()`, a multivariate wrapper that applies 
+the same benchmarking to each column of a matrix or data frame, returning a named list 
+of results. This makes it easy to compare imputation performance across multiple 
+related time series simultaneously.
+
+## Example with stock market data
+
+We'll use the built-in `EuStockMarkets` dataset, which contains daily closing prices of four European stock indices: DAX, SMI, CAC, and FTSE.
+
+```{r load}
+library(imputeTestbench)
+data("EuStockMarkets")
+# Preview the data
+head(EuStockMarkets)
+```
+
+## Running the multivariate benchmark
+
+We call `mv_impute_errors()` with a small range of missing percentages and few repetitions to keep the vignette fast.
+
+```{r run}
+mv_results <- mv_impute_errors(
+  multi_dataIn = EuStockMarkets,
+  missPercentFrom = 10,
+  missPercentTo = 30,
+  interval = 10,
+  repetition = 3   # low for vignette speed
+)
+```
+
+
+## Exploring the output
+
+The output is a named list, where each element corresponds to a column of the input. Each element is itself an `errprof` object, identical to what `impute_errors()` returns for a univariate series.
+
+```{r explore}
+# Names of the list (the stock indices)
+names(mv_results)
+
+# Results for the DAX index
+mv_results$DAX
+
+# Average RMSE for the 'na.approx' method on DAX
+mv_results$DAX$na.approx
+
+# Access the raw errors (all repetitions) for SMI
+str(attr(mv_results$SMI, "errall"), max.level = 2)
+```
+
+## Comparing across variables
+
+We can extract the average errors for all variables into a single data frame for easy comparison.
+
+```{r compare}
+compare_df <- do.call(rbind, lapply(names(mv_results), function(var) {
+  res_var <- mv_results[[var]]
+  data.frame(
+    variable = var,
+    missPercent = res_var$MissingPercent,
+    approx = res_var$na.approx,
+    interp = res_var$na.interp,
+    locf = res_var$na.locf,
+    mean = res_var$na_mean
+  )
+}))
+head(compare_df)
+```
