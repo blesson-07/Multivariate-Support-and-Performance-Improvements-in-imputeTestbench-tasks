@@ -13,7 +13,7 @@ Implement a basic multivariate wrapper for benchmarking (supporting matrix input
 - Fixed all documentation and metadata issues.
 
 ## Code Repository
-- **Branch:** [`main`](https://github.com/blesson-07/imputeTestbench/tree/main) (or your specific branch)
+- **Branch:** [`main`](https://github.com/blesson-07/imputeTestbench) (or your specific branch)
 - **Main files:**
   - [`R/mv_impute_errors.R`](https://github.com/blesson-07/imputeTestbench/blob/master/R/MVwrapper.R)
   - [`vignettes/multivariate-benchmarking.Rmd`](https://github.com/blesson-07/imputeTestbench/blob/master/vignettes/multivariate-benchmarking.Rmd)
