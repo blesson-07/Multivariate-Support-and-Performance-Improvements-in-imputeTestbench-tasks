@@ -1,7 +1,7 @@
 Multivariate Support and Performance Improvements in imputeTestbench tasks
 
-easy : [easy](https://blesson-07.github.io/Multivariate-Support-and-Performance-Improvements-in-imputeTestbench-tasks/easy)
+easy : [easy test](https://blesson-07.github.io/Multivariate-Support-and-Performance-Improvements-in-imputeTestbench-tasks/easy)
 
-medium : https://blesson-07.github.io/Multivariate-Support-and-Performance-Improvements-in-imputeTestbench-tasks/medium
+medium : [medium test](https://blesson-07.github.io/Multivariate-Support-and-Performance-Improvements-in-imputeTestbench-tasks/medium)
 
-hard : https://github.com/blesson-07/Multivariate-Support-and-Performance-Improvements-in-imputeTestbench-tasks/blob/main/hard%20task/hard.md
+hard : [hard test](https://github.com/blesson-07/Multivariate-Support-and-Performance-Improvements-in-imputeTestbench-tasks/blob/main/hard%20task/hard.md)
