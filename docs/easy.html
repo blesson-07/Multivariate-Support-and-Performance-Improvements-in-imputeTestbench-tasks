@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>we all love delulu</title>
+    <title>we all love you ✨</title>
     <style>
-        /* ── Reset & base ── */
-        * {
+        /* ─── Reset & base ─── */
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
@@ -17,153 +19,253 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #0a0015;
+            background: #0b0b1a;
             font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
             overflow: hidden;
-            position: relative;
+            perspective: 1200px;
+            cursor: default;
             user-select: none;
         }
 
-        /* ── Animated gradient background ── */
-        .bg-gradient {
+        /* ─── Animated background layers ─── */
+        .bg-layer {
             position: fixed;
             inset: 0;
             z-index: 0;
-            background: linear-gradient(135deg, #0a0015, #1a0030, #2d004d, #1a0030, #0a0015);
-            background-size: 600% 600%;
-            animation: gradientShift 12s ease-in-out infinite alternate;
+            pointer-events: none;
         }
 
-        @keyframes gradientShift {
+        .bg-layer--gradient {
+            background: radial-gradient(ellipse at 30% 20%, #1a0a2e, #0b0b1a 60%, #050510);
+            animation: bgPulse 8s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgPulse {
             0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
+                opacity: 1;
+                transform: scale(1);
             }
             100% {
-                background-position: 0% 50%;
+                opacity: 0.8;
+                transform: scale(1.02);
             }
         }
 
-        /* ── Floating orbs / glow blobs ── */
+        /* ─── Animated mesh gradient ─── */
+        .mesh {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.5;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(255, 0, 200, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 200, 255, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 50% 80%, rgba(255, 100, 0, 0.08) 0%, transparent 50%);
+            animation: meshMove 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes meshMove {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+            33% {
+                transform: translate(2%, -2%) scale(1.05);
+            }
+            66% {
+                transform: translate(-2%, 3%) scale(0.95);
+            }
+            100% {
+                transform: translate(3%, -1%) scale(1.02);
+            }
+        }
+
+        /* ─── Floating orbs ─── */
         .orb {
             position: fixed;
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.4;
-            z-index: 0;
-            animation: orbFloat 18s ease-in-out infinite alternate;
+            filter: blur(120px);
             pointer-events: none;
+            z-index: 0;
+            animation: orbFloat 14s ease-in-out infinite alternate;
         }
         .orb--1 {
-            width: 500px;
-            height: 500px;
-            top: -10%;
-            left: -5%;
-            background: #ff6ec7;
+            width: 600px;
+            height: 600px;
+            top: -15%;
+            left: -10%;
+            background: #ff2d8a;
+            opacity: 0.25;
             animation-delay: 0s;
         }
         .orb--2 {
-            width: 600px;
-            height: 600px;
-            bottom: -15%;
+            width: 500px;
+            height: 500px;
+            bottom: -20%;
             right: -10%;
             background: #7b2ffc;
-            animation-delay: -6s;
+            opacity: 0.2;
+            animation-delay: -5s;
         }
         .orb--3 {
             width: 400px;
             height: 400px;
-            top: 40%;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             background: #00d4ff;
-            animation-delay: -12s;
-            opacity: 0.25;
+            opacity: 0.12;
+            animation-delay: -10s;
+        }
+        .orb--4 {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            right: 20%;
+            background: #ff6b35;
+            opacity: 0.15;
+            animation-delay: -3s;
+        }
+        .orb--5 {
+            width: 350px;
+            height: 350px;
+            bottom: 10%;
+            left: 15%;
+            background: #00ff87;
+            opacity: 0.10;
+            animation-delay: -7s;
         }
 
         @keyframes orbFloat {
             0% {
                 transform: translate(0, 0) scale(1);
             }
-            33% {
-                transform: translate(40px, -30px) scale(1.1);
+            25% {
+                transform: translate(50px, -40px) scale(1.1);
             }
-            66% {
-                transform: translate(-20px, 40px) scale(0.9);
+            50% {
+                transform: translate(-30px, 60px) scale(0.9);
+            }
+            75% {
+                transform: translate(40px, 30px) scale(1.05);
             }
             100% {
-                transform: translate(30px, -20px) scale(1.05);
+                transform: translate(-20px, -50px) scale(0.95);
             }
         }
 
-        /* ── Main content ── */
-        .container {
+        /* ─── Main 3D container ─── */
+        .scene {
+            position: relative;
+            z-index: 1;
+            transform-style: preserve-3d;
+            transition: transform 0.08s ease-out;
+            will-change: transform;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .card {
             position: relative;
             z-index: 1;
             text-align: center;
-            padding: 2rem;
-            animation: fadeInUp 1.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            padding: 2.5rem 4rem;
+            border-radius: 60px;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px) saturate(1.4);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transform: translateZ(20px);
+            animation: cardFloat 6s ease-in-out infinite alternate;
         }
 
-        @keyframes fadeInUp {
+        @keyframes cardFloat {
             0% {
-                opacity: 0;
-                transform: translateY(60px) scale(0.96);
+                transform: translateZ(20px) translateY(0);
             }
             100% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
+                transform: translateZ(30px) translateY(-12px);
             }
         }
 
-        /* ── Main heading ── */
+        /* ─── Glow ring behind text ─── */
+        .glow-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: 90%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 45, 138, 0.08) 0%, transparent 70%);
+            filter: blur(40px);
+            pointer-events: none;
+            animation: ringPulse 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes ringPulse {
+            0% {
+                transform: translate(-50%, -50%) scale(0.9);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.3);
+                opacity: 1;
+            }
+        }
+
+        /* ─── Main heading ─── */
         .main-title {
-            font-size: clamp(3rem, 14vw, 8rem);
+            position: relative;
+            z-index: 2;
+            font-size: clamp(3.2rem, 15vw, 9rem);
             font-weight: 900;
-            letter-spacing: -0.03em;
-            line-height: 1.1;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
             color: #fff;
             text-shadow:
-                0 0 20px rgba(255, 110, 199, 0.5),
-                0 0 60px rgba(123, 47, 252, 0.4),
-                0 0 120px rgba(0, 212, 255, 0.2);
-            animation: titleGlow 3s ease-in-out infinite alternate;
-            position: relative;
-            display: inline-block;
+                0 0 40px rgba(255, 45, 138, 0.3),
+                0 0 80px rgba(123, 47, 252, 0.2),
+                0 0 160px rgba(0, 212, 255, 0.1);
+            animation: titlePulse 3.5s ease-in-out infinite alternate;
+            transform: translateZ(40px);
         }
 
-        @keyframes titleGlow {
+        @keyframes titlePulse {
             0% {
                 text-shadow:
-                    0 0 20px rgba(255, 110, 199, 0.5),
-                    0 0 60px rgba(123, 47, 252, 0.4),
-                    0 0 120px rgba(0, 212, 255, 0.2);
-                transform: scale(1);
+                    0 0 40px rgba(255, 45, 138, 0.3),
+                    0 0 80px rgba(123, 47, 252, 0.2),
+                    0 0 160px rgba(0, 212, 255, 0.1);
+                transform: translateZ(40px) scale(1);
             }
             100% {
                 text-shadow:
-                    0 0 30px rgba(255, 110, 199, 0.9),
-                    0 0 80px rgba(123, 47, 252, 0.7),
-                    0 0 160px rgba(0, 212, 255, 0.4);
-                transform: scale(1.02);
+                    0 0 60px rgba(255, 45, 138, 0.5),
+                    0 0 120px rgba(123, 47, 252, 0.35),
+                    0 0 200px rgba(0, 212, 255, 0.2);
+                transform: translateZ(50px) scale(1.02);
             }
         }
 
-        /* ── Rainbow text overlay (gradient text) ── */
-        .rainbow-text {
+        /* ─── Rainbow gradient text ─── */
+        .rainbow {
             background: linear-gradient(90deg,
-                    #ff6ec7, #ff3b8a, #ff6ec7,
-                    #a855f7, #7b2ffc, #3b82f6,
-                    #06b6d4, #34d399, #fbbf24,
-                    #f97316, #ff6ec7);
+                    #ff2d8a, #ff6b35, #ffd93d, #6bcb77,
+                    #4d96ff, #9b59b6, #ff2d8a);
             background-size: 400% 100%;
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            animation: rainbowFlow 6s linear infinite;
+            animation: rainbowFlow 5s linear infinite;
             display: inline-block;
+            position: relative;
         }
 
         @keyframes rainbowFlow {
@@ -175,99 +277,209 @@
             }
         }
 
-        /* ── Subtitle / tagline ── */
-        .subtitle {
-            font-size: clamp(1rem, 2.5vw, 1.8rem);
-            font-weight: 300;
-            color: rgba(255, 255, 255, 0.7);
-            margin-top: 1.2rem;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            animation: pulseSub 3s ease-in-out infinite;
-            backdrop-filter: blur(4px);
-            padding: 0.4rem 1.6rem;
-            border-radius: 40px;
-            display: inline-block;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            background: rgba(255, 255, 255, 0.03);
+        /* ─── Text stroke outline ─── */
+        .text-stroke {
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            -webkit-text-stroke: 2px rgba(255, 255, 255, 0.05);
+            color: transparent;
+            transform: translateZ(-10px) translate(4px, 4px);
+            font-size: clamp(3.2rem, 15vw, 9rem);
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+            pointer-events: none;
+            animation: strokeFloat 5s ease-in-out infinite alternate;
         }
 
-        @keyframes pulseSub {
-            0%,
+        @keyframes strokeFloat {
+            0% {
+                transform: translateZ(-10px) translate(4px, 4px);
+            }
             100% {
-                opacity: 0.6;
-                transform: scale(1);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1.03);
+                transform: translateZ(-10px) translate(-4px, -4px);
             }
         }
 
-        /* ── Emoji / symbol row ── */
+        /* ─── Subtitle ─── */
+        .subtitle {
+            position: relative;
+            z-index: 2;
+            margin-top: 1.6rem;
+            font-size: clamp(0.9rem, 2vw, 1.6rem);
+            font-weight: 300;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.5rem 2rem;
+            border-radius: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(4px);
+            display: inline-block;
+            animation: subtitlePulse 3s ease-in-out infinite alternate;
+            transform: translateZ(30px);
+        }
+
+        @keyframes subtitlePulse {
+            0% {
+                opacity: 0.5;
+                transform: translateZ(30px) scale(1);
+                letter-spacing: 0.4em;
+            }
+            100% {
+                opacity: 1;
+                transform: translateZ(40px) scale(1.04);
+                letter-spacing: 0.6em;
+            }
+        }
+
+        /* ─── Emoji row ─── */
         .emoji-row {
-            margin-top: 2.2rem;
-            font-size: clamp(2rem, 5vw, 3.6rem);
+            position: relative;
+            z-index: 2;
+            margin-top: 2.5rem;
             display: flex;
-            gap: 0.8rem 1.8rem;
+            gap: 0.8rem 2rem;
             flex-wrap: wrap;
             justify-content: center;
-            animation: floatEmojis 4s ease-in-out infinite alternate;
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            transform: translateZ(25px);
         }
 
         .emoji-row span {
             display: inline-block;
-            animation: emojiPop 2.4s ease-in-out infinite alternate;
-            filter: drop-shadow(0 0 12px rgba(255, 110, 199, 0.3));
-            transition: transform 0.2s;
+            filter: drop-shadow(0 0 20px rgba(255, 45, 138, 0.2));
+            animation: emojiDance 2.8s ease-in-out infinite alternate;
+            transition: transform 0.15s ease;
             cursor: default;
         }
 
         .emoji-row span:hover {
-            transform: scale(1.4) rotate(8deg);
+            transform: scale(1.5) rotate(12deg) !important;
+            filter: drop-shadow(0 0 40px rgba(255, 45, 138, 0.5));
         }
 
         .emoji-row span:nth-child(1) {
             animation-delay: 0s;
         }
         .emoji-row span:nth-child(2) {
-            animation-delay: 0.3s;
+            animation-delay: 0.25s;
         }
         .emoji-row span:nth-child(3) {
-            animation-delay: 0.6s;
+            animation-delay: 0.5s;
         }
         .emoji-row span:nth-child(4) {
-            animation-delay: 0.9s;
+            animation-delay: 0.75s;
         }
         .emoji-row span:nth-child(5) {
-            animation-delay: 1.2s;
+            animation-delay: 1s;
         }
         .emoji-row span:nth-child(6) {
-            animation-delay: 1.5s;
+            animation-delay: 1.25s;
         }
         .emoji-row span:nth-child(7) {
-            animation-delay: 1.8s;
+            animation-delay: 1.5s;
+        }
+        .emoji-row span:nth-child(8) {
+            animation-delay: 1.75s;
         }
 
-        @keyframes emojiPop {
+        @keyframes emojiDance {
             0% {
-                transform: translateY(0) scale(1) rotate(0deg);
+                transform: translateY(0) scale(1) rotate(-6deg);
             }
             100% {
-                transform: translateY(-14px) scale(1.12) rotate(6deg);
+                transform: translateY(-18px) scale(1.12) rotate(6deg);
             }
         }
 
-        @keyframes floatEmojis {
+        /* ─── Floating hearts / shapes (extra) ─── */
+        .floating-shapes {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .shape {
+            position: absolute;
+            font-size: 1.8rem;
+            opacity: 0.08;
+            animation: shapeFloat 25s linear infinite;
+            transform-origin: center;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 5%;
+            animation-duration: 22s;
+            animation-delay: 0s;
+            font-size: 2.4rem;
+        }
+        .shape:nth-child(2) {
+            top: 80%;
+            left: 90%;
+            animation-duration: 28s;
+            animation-delay: -4s;
+            font-size: 1.6rem;
+        }
+        .shape:nth-child(3) {
+            top: 50%;
+            left: 3%;
+            animation-duration: 20s;
+            animation-delay: -8s;
+            font-size: 2rem;
+        }
+        .shape:nth-child(4) {
+            top: 20%;
+            left: 92%;
+            animation-duration: 26s;
+            animation-delay: -12s;
+            font-size: 1.4rem;
+        }
+        .shape:nth-child(5) {
+            top: 70%;
+            left: 8%;
+            animation-duration: 24s;
+            animation-delay: -16s;
+            font-size: 1.8rem;
+        }
+        .shape:nth-child(6) {
+            top: 30%;
+            left: 50%;
+            animation-duration: 30s;
+            animation-delay: -3s;
+            font-size: 3rem;
+            opacity: 0.05;
+        }
+
+        @keyframes shapeFloat {
             0% {
-                transform: translateY(0);
+                transform: translate(0, 0) rotate(0deg) scale(1);
+                opacity: 0.06;
+            }
+            25% {
+                transform: translate(80px, -60px) rotate(90deg) scale(1.2);
+                opacity: 0.12;
+            }
+            50% {
+                transform: translate(-40px, 80px) rotate(180deg) scale(0.8);
+                opacity: 0.06;
+            }
+            75% {
+                transform: translate(60px, 40px) rotate(270deg) scale(1.1);
+                opacity: 0.10;
             }
             100% {
-                transform: translateY(-8px);
+                transform: translate(-30px, -70px) rotate(360deg) scale(0.9);
+                opacity: 0.06;
             }
         }
 
-        /* ── Sparkle particles (canvas) ── */
+        /* ─── Canvas particles ─── */
         #particles-canvas {
             position: fixed;
             inset: 0;
@@ -277,50 +489,119 @@
             height: 100%;
         }
 
-        /* ── Responsive tweaks ── */
+        /* ─── Responsive ─── */
         @media (max-width: 600px) {
+            .card {
+                padding: 1.8rem 1.5rem;
+                border-radius: 40px;
+            }
             .subtitle {
-                letter-spacing: 0.15em;
-                font-size: 0.9rem;
+                letter-spacing: 0.2em;
+                font-size: 0.7rem;
                 padding: 0.3rem 1rem;
             }
             .emoji-row {
-                gap: 0.4rem 1rem;
+                gap: 0.3rem 1rem;
+                font-size: 1.8rem;
+            }
+            .shape {
+                display: none;
             }
         }
     </style>
 </head>
 <body>
 
-    <!-- Background layers -->
-    <div class="bg-gradient"></div>
+    <!-- ─── Background layers ─── -->
+    <div class="bg-layer bg-layer--gradient"></div>
+    <div class="mesh"></div>
+
     <div class="orb orb--1"></div>
     <div class="orb orb--2"></div>
     <div class="orb orb--3"></div>
+    <div class="orb orb--4"></div>
+    <div class="orb orb--5"></div>
 
-    <!-- Particle canvas -->
+    <!-- ─── Floating shapes ─── -->
+    <div class="floating-shapes">
+        <span class="shape">✦</span>
+        <span class="shape">♥</span>
+        <span class="shape">✦</span>
+        <span class="shape">♥</span>
+        <span class="shape">✦</span>
+        <span class="shape">♥</span>
+    </div>
+
+    <!-- ─── Particle canvas ─── -->
     <canvas id="particles-canvas"></canvas>
 
-    <!-- Main content -->
-    <div class="container">
-        <h1 class="main-title">
-            <span class="rainbow-text">we all love delulu</span>
-        </h1>
-        <div class="subtitle">✨ forever & always ✨</div>
-        <div class="emoji-row">
-            <span>🦄</span>
-            <span>💖</span>
-            <span>✨</span>
-            <span>🌈</span>
-            <span>🌟</span>
-            <span>💫</span>
-            <span>🫶</span>
+    <!-- ─── Main 3D scene ─── -->
+    <div class="scene" id="scene">
+        <div class="card">
+            <div class="glow-ring"></div>
+
+            <!-- Stroke layer (3D depth) -->
+            <div class="text-stroke" aria-hidden="true">we all love you</div>
+
+            <!-- Main title -->
+            <h1 class="main-title">
+                <span class="rainbow">we all love you</span>
+            </h1>
+
+            <div class="subtitle">✨ forever & always ✨</div>
+
+            <div class="emoji-row">
+                <span>🫶</span>
+                <span>💖</span>
+                <span>✨</span>
+                <span>🌈</span>
+                <span>🌟</span>
+                <span>💫</span>
+                <span>🌸</span>
+                <span>🦋</span>
+            </div>
         </div>
     </div>
 
     <script>
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        //  Sparkle / Particle system
+        //  1. 3D TILT FOLLOWING MOUSE
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+        const scene = document.getElementById('scene');
+        let tiltX = 0;
+        let tiltY = 0;
+        let targetTiltX = 0;
+        let targetTiltY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth) * 2 - 1;
+            const y = (e.clientY / window.innerHeight) * 2 - 1;
+            targetTiltX = y * 8;
+            targetTiltY = -x * 8;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            if (touch) {
+                const x = (touch.clientX / window.innerWidth) * 2 - 1;
+                const y = (touch.clientY / window.innerHeight) * 2 - 1;
+                targetTiltX = y * 8;
+                targetTiltY = -x * 8;
+            }
+        }, { passive: true });
+
+        // Smooth tilt
+        function updateTilt() {
+            tiltX += (targetTiltX - tiltX) * 0.08;
+            tiltY += (targetTiltY - tiltY) * 0.08;
+            scene.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+            requestAnimationFrame(updateTilt);
+        }
+        updateTilt();
+
+        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        //  2. ADVANCED PARTICLE SYSTEM
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
         const canvas = document.getElementById('particles-canvas');
@@ -328,71 +609,81 @@
 
         let W, H;
         let particles = [];
-        const MAX_PARTICLES = 140;
-        const MOUSE_RADIUS = 120;
+        const MAX_PARTICLES = 220;
+        const MOUSE_RADIUS = 150;
 
         let mouseX = -9999;
         let mouseY = -9999;
         let isMouseOnCanvas = false;
 
-        function resize() {
+        function resizeCanvas() {
             W = canvas.width = window.innerWidth;
             H = canvas.height = window.innerHeight;
         }
-        window.addEventListener('resize', resize);
-        resize();
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-        // ── Particle class ──
+        // ── Particle ──
         class Particle {
             constructor() {
                 this.reset();
-                // give some variety at birth
                 this.x = Math.random() * W;
                 this.y = Math.random() * H;
-                this.size = Math.random() * 3.5 + 1.2;
-                this.speedX = (Math.random() - 0.5) * 0.6;
-                this.speedY = (Math.random() - 0.5) * 0.6;
-                this.opacity = Math.random() * 0.7 + 0.3;
-                // color: pick from a dreamy palette
+                this.size = Math.random() * 3.8 + 0.8;
+                this.speedX = (Math.random() - 0.5) * 0.8;
+                this.speedY = (Math.random() - 0.5) * 0.8;
+                this.opacity = Math.random() * 0.6 + 0.3;
                 const colors = [
-                    '255, 110, 199', // pink
-                    '123, 47, 252', // purple
-                    '0, 212, 255', // cyan
-                    '255, 59, 138', // hot pink
-                    '168, 85, 247', // violet
-                    '251, 191, 36', // gold
-                    '52, 211, 153', // mint
+                    '255, 45, 138',
+                    '123, 47, 252',
+                    '0, 212, 255',
+                    '255, 107, 53',
+                    '255, 217, 61',
+                    '107, 203, 119',
+                    '77, 150, 255',
+                    '155, 89, 182',
+                    '255, 100, 200',
                 ];
                 this.color = colors[Math.floor(Math.random() * colors.length)];
                 this.life = 1;
-                this.decay = 0.001 + Math.random() * 0.003;
+                this.decay = 0.001 + Math.random() * 0.004;
+                this.trail = [];
+                this.maxTrail = 6;
+                this.wobble = Math.random() * 100;
+                this.wobbleSpeed = 0.01 + Math.random() * 0.02;
                 this.isNew = true;
             }
 
             reset() {
                 this.x = Math.random() * W;
                 this.y = Math.random() * H;
-                this.size = Math.random() * 3.5 + 1.2;
-                this.speedX = (Math.random() - 0.5) * 0.6;
-                this.speedY = (Math.random() - 0.5) * 0.6;
-                this.opacity = Math.random() * 0.7 + 0.3;
+                this.size = Math.random() * 3.8 + 0.8;
+                this.speedX = (Math.random() - 0.5) * 0.8;
+                this.speedY = (Math.random() - 0.5) * 0.8;
+                this.opacity = Math.random() * 0.6 + 0.3;
                 const colors = [
-                    '255, 110, 199',
+                    '255, 45, 138',
                     '123, 47, 252',
                     '0, 212, 255',
-                    '255, 59, 138',
-                    '168, 85, 247',
-                    '251, 191, 36',
-                    '52, 211, 153',
+                    '255, 107, 53',
+                    '255, 217, 61',
+                    '107, 203, 119',
+                    '77, 150, 255',
+                    '155, 89, 182',
+                    '255, 100, 200',
                 ];
                 this.color = colors[Math.floor(Math.random() * colors.length)];
                 this.life = 1;
-                this.decay = 0.001 + Math.random() * 0.003;
+                this.decay = 0.001 + Math.random() * 0.004;
+                this.trail = [];
+                this.maxTrail = 6;
+                this.wobble = Math.random() * 100;
+                this.wobbleSpeed = 0.01 + Math.random() * 0.02;
                 this.isNew = true;
             }
 
             update() {
-                // mouse interaction: gentle repulsion or attraction?
+                // Mouse repulsion
                 if (isMouseOnCanvas) {
                     const dx = this.x - mouseX;
                     const dy = this.y - mouseY;
@@ -400,75 +691,102 @@
                     if (dist < MOUSE_RADIUS && dist > 0) {
                         const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS;
                         const angle = Math.atan2(dy, dx);
-                        const push = force * 1.2;
+                        const push = force * 2.0;
                         this.x += Math.cos(angle) * push;
                         this.y += Math.sin(angle) * push;
+                        this.speedX += Math.cos(angle) * force * 0.3;
+                        this.speedY += Math.sin(angle) * force * 0.3;
                     }
                 }
 
-                this.x += this.speedX;
-                this.y += this.speedY;
+                // Wobble
+                this.wobble += this.wobbleSpeed;
+                const wobX = Math.sin(this.wobble) * 0.15;
+                const wobY = Math.cos(this.wobble * 0.7) * 0.15;
 
-                // gentle drift
-                this.speedX += (Math.random() - 0.5) * 0.02;
-                this.speedY += (Math.random() - 0.5) * 0.02;
-                this.speedX *= 0.999;
-                this.speedY *= 0.999;
+                this.x += this.speedX + wobX;
+                this.y += this.speedY + wobY;
 
-                // wrap around edges
-                if (this.x < -20) this.x = W + 20;
-                if (this.x > W + 20) this.x = -20;
-                if (this.y < -20) this.y = H + 20;
-                if (this.y > H + 20) this.y = -20;
+                // Speed dampening
+                this.speedX *= 0.998;
+                this.speedY *= 0.998;
 
-                // life / opacity shimmer
+                // Wrap
+                if (this.x < -30) this.x = W + 30;
+                if (this.x > W + 30) this.x = -30;
+                if (this.y < -30) this.y = H + 30;
+                if (this.y > H + 30) this.y = -30;
+
+                // Trail
+                if (this.size > 2) {
+                    this.trail.push({ x: this.x, y: this.y });
+                    if (this.trail.length > this.maxTrail) {
+                        this.trail.shift();
+                    }
+                }
+
+                // Life cycle
                 this.life -= this.decay;
                 if (this.life < 0.1) {
                     this.life = 1;
                     this.isNew = true;
-                    // refresh color occasionally
                     const colors = [
-                        '255, 110, 199',
+                        '255, 45, 138',
                         '123, 47, 252',
                         '0, 212, 255',
-                        '255, 59, 138',
-                        '168, 85, 247',
-                        '251, 191, 36',
-                        '52, 211, 153',
+                        '255, 107, 53',
+                        '255, 217, 61',
+                        '107, 203, 119',
+                        '77, 150, 255',
+                        '155, 89, 182',
+                        '255, 100, 200',
                     ];
                     this.color = colors[Math.floor(Math.random() * colors.length)];
+                    this.trail = [];
                 }
                 this.isNew = false;
             }
 
             draw() {
-                const alpha = this.opacity * (0.4 + 0.6 * this.life);
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                const alpha = this.opacity * (0.3 + 0.7 * this.life);
 
-                // glow
+                // ── Trail ──
+                if (this.trail.length > 1) {
+                    for (let i = 0; i < this.trail.length - 1; i++) {
+                        const t = i / this.trail.length;
+                        const trailAlpha = alpha * t * 0.35;
+                        ctx.beginPath();
+                        ctx.arc(this.trail[i].x, this.trail[i].y, this.size * t * 0.5, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${this.color}, ${trailAlpha})`;
+                        ctx.fill();
+                    }
+                }
+
+                // ── Glow ──
                 const gradient = ctx.createRadialGradient(
                     this.x, this.y, 0,
-                    this.x, this.y, this.size * 4
+                    this.x, this.y, this.size * 5
                 );
                 gradient.addColorStop(0, `rgba(${this.color}, ${alpha * 0.9})`);
-                gradient.addColorStop(0.4, `rgba(${this.color}, ${alpha * 0.4})`);
+                gradient.addColorStop(0.3, `rgba(${this.color}, ${alpha * 0.4})`);
                 gradient.addColorStop(1, `rgba(${this.color}, 0)`);
 
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * 5, 0, Math.PI * 2);
                 ctx.fillStyle = gradient;
                 ctx.fill();
 
-                // core dot
+                // ── Core ──
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+                ctx.arc(this.x, this.y, this.size * 0.6, 0, Math.PI * 2);
                 ctx.fillStyle = `rgba(255, 255, 255, ${alpha * 0.7})`;
                 ctx.fill();
 
-                // tiny sparkle cross
-                if (this.size > 2.2 && Math.random() < 0.02) {
-                    ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.2})`;
-                    ctx.lineWidth = 0.8;
-                    const s = this.size * 1.8;
+                // ── Sparkle cross ──
+                if (this.size > 2.5 && Math.random() < 0.015) {
+                    ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.25})`;
+                    ctx.lineWidth = 0.6;
+                    const s = this.size * 2;
                     ctx.beginPath();
                     ctx.moveTo(this.x - s, this.y);
                     ctx.lineTo(this.x + s, this.y);
@@ -479,7 +797,7 @@
             }
         }
 
-        // ── Init particles ──
+        // ── Init ──
         for (let i = 0; i < MAX_PARTICLES; i++) {
             particles.push(new Particle());
         }
@@ -494,7 +812,6 @@
             isMouseOnCanvas = false;
         });
 
-        // Touch support
         window.addEventListener('touchmove', (e) => {
             const touch = e.touches[0];
             if (touch) {
@@ -507,18 +824,26 @@
             isMouseOnCanvas = false;
         });
 
+        // ── Resize ──
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            for (const p of particles) {
+                p.x = Math.min(Math.max(p.x, 0), W);
+                p.y = Math.min(Math.max(p.y, 0), H);
+            }
+        });
+
         // ── Animation loop ──
-        function animate() {
+        function animateParticles() {
             ctx.clearRect(0, 0, W, H);
 
-            // Update & draw each particle
             for (const p of particles) {
                 p.update();
                 p.draw();
             }
 
-            // Draw connecting lines between nearby particles (only if close)
-            ctx.lineWidth = 0.5;
+            // ── Connections ──
+            ctx.lineWidth = 0.4;
             for (let i = 0; i < particles.length; i++) {
                 for (let j = i + 1; j < particles.length; j++) {
                     const a = particles[i];
@@ -526,8 +851,8 @@
                     const dx = a.x - b.x;
                     const dy = a.y - b.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < 110) {
-                        const alpha = (1 - dist / 110) * 0.25;
+                    if (dist < 100) {
+                        const alpha = (1 - dist / 100) * 0.2;
                         ctx.beginPath();
                         ctx.moveTo(a.x, a.y);
                         ctx.lineTo(b.x, b.y);
@@ -537,33 +862,27 @@
                 }
             }
 
-            requestAnimationFrame(animate);
+            requestAnimationFrame(animateParticles);
         }
 
-        animate();
+        animateParticles();
 
-        // ── Resize handler for particles ──
-        window.addEventListener('resize', () => {
-            resize();
-            // reposition particles that are out of bounds
-            for (const p of particles) {
-                p.x = Math.min(Math.max(p.x, 0), W);
-                p.y = Math.min(Math.max(p.y, 0), H);
-            }
-        });
-
-        // ── Bonus: add a few new particles periodically ──
+        // ── Periodic refresh ──
         setInterval(() => {
-            if (particles.length < MAX_PARTICLES + 20) {
-                for (let i = 0; i < 3; i++) {
+            if (particles.length < MAX_PARTICLES + 30) {
+                for (let i = 0; i < 4; i++) {
                     particles.push(new Particle());
                 }
             }
-            // trim if too many
-            if (particles.length > MAX_PARTICLES + 30) {
+            if (particles.length > MAX_PARTICLES + 40) {
                 particles.splice(0, particles.length - MAX_PARTICLES);
             }
-        }, 2000);
+        }, 1500);
+
+        // ── Resize handler for tilt ──
+        window.addEventListener('resize', () => {
+            // no-op, just keeping consistency
+        });
     </script>
 </body>
 </html>
